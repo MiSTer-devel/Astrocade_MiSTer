@@ -14,3 +14,6 @@ The Astrocade had a very unusual controller. It was a gun-grip style handle with
 
 ## Cart Expansions
 No cart expansions are implemented at this time.
+
+## Known Issues
+The video timings of the Astrocade seem to create problems with the first and last lines of each field. This seems to work okay on actual CRTs, but scandoublers like OSSC may be confused by it.

@@ -221,12 +221,14 @@ wire [15:0] joyba = joy_swap ? joystick_a0 : joystick_a1;
 // give us 14.2857MHz (7.1428)
 
 wire clk_sys;
+wire clk_vid;
 
 pll pll
 (
 	.refclk(CLK_50M),
 	.rst(0),
-	.outclk_0(clk_sys)
+	.outclk_0(clk_sys),
+	.outclk_1(clk_vid)
 );
 
 reg [1:0] clk_cpu_ct;
@@ -315,10 +317,10 @@ wire [3:0] R, G, B;
 
 wire HSync;
 wire VSync;
-wire VBlank = ((vsync_ct < 25) || (vsync_ct > 240));
-wire HBlank = ((hsync_ct >= 250) || (hsync_ct < 10));
+wire VBlank = ((vsync_ct < 25) || (vsync_ct > 254));
+wire HBlank = ((hsync_ct >= 214) || (hsync_ct < 34));
 
-assign CLK_VIDEO = clk_sys;
+assign CLK_VIDEO = clk_vid;
 assign VGA_SL = sl[1:0];
 assign VGA_F1 = 0;
 
@@ -347,7 +349,7 @@ always @(posedge ce_pix) begin
 	end
 end
 
-video_mixer #(.LINE_LENGTH(226)) video_mixer
+video_mixer #(.LINE_LENGTH(455)) video_mixer
 (
 	.*,
 	.ce_pix(ce_pix),

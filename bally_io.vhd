@@ -88,7 +88,7 @@ architecture RTL of BALLY_IO is
   signal cs                   : std_logic;
   signal snd_ld               : array_bool8;
   signal r_snd                : array_8x8 := (x"00",x"00",x"00",x"00",x"00",x"00",x"00",x"00");
-  signal r_pot                : array_4x8 := (x"00",x"00",x"00",x"00");
+  --signal r_pot                : array_4x8 := (x"00",x"00",x"00",x"00");
   signal mxd_out_reg          : std_logic_vector(7 downto 0);
 
   signal io_read              : std_logic;
@@ -251,17 +251,19 @@ begin
   end process;
   --
 
-  p_pots                 : process
-  begin
-    wait until rising_edge(CLK);
-    if (ENA = '1') then
-      -- return FF when not plugged in
-      r_pot(0) <= x"FF";
-      r_pot(1) <= x"FF";
-      r_pot(2) <= x"FF";
-      r_pot(3) <= x"FF";
-    end if;
-  end process;
+-- no longer used with proper pot hookup
+  -- p_pots                 : process
+  -- begin
+  --   wait until rising_edge(CLK);
+  --   if (ENA = '1') then
+  --     -- return FF when not plugged in
+  --     r_pot(0) <= x"FF";
+  --     r_pot(1) <= x"FF";
+  --     r_pot(2) <= x"FF";
+  --     r_pot(3) <= x"FF";
+  --   end if;
+  -- end process;
+
   -- read switches 10-17, pots 1c - 1f
   -- port 7  6  5  4  3  2  1  0
   -- x10           tg rt lt dn up | player 1

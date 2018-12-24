@@ -4,6 +4,8 @@ create_clock -period "50.0 MHz" [get_ports FPGA_CLK2_50]
 create_clock -period "50.0 MHz" [get_ports FPGA_CLK3_50]
 create_clock -period "100.0 MHz" [get_pins -compatibility_mode *|h2f_user0_clk]
 
+create_clock -name CLK_PIX -period 10.000 [get_nets {emu|bally|u_data|pix_ena}]
+
 derive_pll_clocks
 
 # Specify PLL-generated clock(s)

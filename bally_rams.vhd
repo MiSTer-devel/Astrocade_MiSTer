@@ -138,7 +138,7 @@ begin
     addr_t1 <= ADDR;
   end process;
 
-  p_mux : process(dout_int_l, dout_int_h, addr)
+  p_mux : process(dout_int_l, dout_int_h, addr, addr_t1)
     variable mux_h : std_logic_vector(7 downto 0);
     variable mux_l : std_logic_vector(7 downto 0);
   begin

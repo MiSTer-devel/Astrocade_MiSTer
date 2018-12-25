@@ -320,6 +320,7 @@ wire VSync;
 wire VBlank = ((vsync_ct < 25) || (vsync_ct > 254));
 wire HBlank = ((hsync_ct >= 214) || (hsync_ct < 34));
 
+
 assign CLK_VIDEO = clk_vid;
 assign VGA_SL = sl[1:0];
 assign VGA_F1 = 0;

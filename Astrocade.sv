@@ -262,7 +262,7 @@ BALLY bally
 	.O_VIDEO_R      (R), //    : out   std_logic_vector(3 downto 0);
 	.O_VIDEO_G      (G), //    : out   std_logic_vector(3 downto 0);
 	.O_VIDEO_B      (B), //    : out   std_logic_vector(3 downto 0);
-	.O_CE_PIX       (ce_pix),
+	.O_CE_PIX       (),
 	.O_HBLANK_V     (),
 	.O_VBLANK_V     (),
 	.O_HSYNC        (HSync), //    : out   std_logic;
@@ -327,7 +327,6 @@ wire VSync;
 wire VBlank = ((vsync_ct < 25) || (vsync_ct > 254));
 wire HBlank = ((hsync_ct >= 214) || (hsync_ct < 34));
 
-
 assign CLK_VIDEO = clk_vid;
 assign VGA_SL = sl[1:0];
 assign VGA_F1 = 0;
@@ -336,46 +335,46 @@ assign VGA_F1 = 0;
 //quoted: 160/320, 102/204
 wire [2:0] scale = status[11:9];
 wire [2:0] sl = scale ? scale - 1'd1 : 3'd0;
-wire ce_pix;
 
 (* keep = 1 *) reg [15:0] vsync_ct;
 (* keep = 1 *) reg [15:0] hsync_ct;
 
 reg old_vsync, old_hsync;
 
-always @(posedge ce_pix) begin
+reg ce_pix;
+always @(posedge clk_vid) begin
+	reg [2:0] pix;
+	
+	pix <= pix + 1'd1;
 	old_hsync <= HSync;
 	old_vsync <= VSync;
 
+	ce_pix <= 0;
 	if (~old_vsync & VSync) begin
 		vsync_ct <= 16'd0;
-	end else if (~old_hsync & HSync) begin
+	end
+	else if (~old_hsync & HSync) begin
 		vsync_ct <= vsync_ct + 16'd1;
 		hsync_ct <= 16'd0;
-	end else begin
+		pix <= 0;
+	end
+	else if(&pix) begin
 		hsync_ct <= hsync_ct + 16'd1;
+		ce_pix <= 1;
 	end
 end
 
-video_mixer #(.LINE_LENGTH(455)) video_mixer
+video_mixer #(455, 1) video_mixer
 (
 	.*,
 	.ce_pix(ce_pix),
-	.HBlank(HBlank),
-	.VBlank(VBlank),
-	.HSync(HSync),
-	.VSync(VSync),
 	.clk_sys(CLK_VIDEO),
 	.ce_pix_out(CE_PIXEL),
 
 	.scandoubler(scale || forced_scandoubler),
 	.scanlines(0),
 	.hq2x(scale==1),
-	.mono(0),
-
-	.R({R, R}),
-	.G({G, G}),
-	.B({B, B})
+	.mono(0)
 );
 
 

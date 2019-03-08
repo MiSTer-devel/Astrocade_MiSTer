@@ -64,28 +64,28 @@ always @(posedge clk_sys) begin
 	joystick_matrix[5][2] <= (joya[14] | joyb[14]); // 9
 	joystick_matrix[5][1] <= (joya[15] | joyb[15]); // Cr
 
-	casex(ps2_key[8:0])
-		'hX16: ps2_col_row <= 8'h74; // 1
-		'hX1E: ps2_col_row <= 8'h64; // 2
-		'hX26: ps2_col_row <= 8'h54; // 3
-		'hX25: ps2_col_row <= 8'h73; // 4
-		'hX2E: ps2_col_row <= 8'h63; // 5
-		'hX36: ps2_col_row <= 8'h53; // 6
-		'hX3D: ps2_col_row <= 8'h72; // 7
-		'hX3E: ps2_col_row <= 8'h62; // 8
-		'hX46: ps2_col_row <= 8'h52; // 9
-		'hX45: ps2_col_row <= 8'h65; // 0
+	case(ps2_key[7:0])
+		'h16: ps2_col_row <= 8'h74; // 1
+		'h1E: ps2_col_row <= 8'h64; // 2
+		'h26: ps2_col_row <= 8'h54; // 3
+		'h25: ps2_col_row <= 8'h73; // 4
+		'h2E: ps2_col_row <= 8'h63; // 5
+		'h36: ps2_col_row <= 8'h53; // 6
+		'h3D: ps2_col_row <= 8'h72; // 7
+		'h3E: ps2_col_row <= 8'h62; // 8
+		'h46: ps2_col_row <= 8'h52; // 9
+		'h45: ps2_col_row <= 8'h65; // 0
 
-		'hX79: ps2_col_row <= 8'h44; // +
-		'hX7B: ps2_col_row <= 8'h43; // -
-		'hX7C: ps2_col_row <= 8'h42; // *
-		'hX4A: ps2_col_row <= 8'h41; // /
-		'hX55: ps2_col_row <= 8'h45; // =
+		'h79: ps2_col_row <= 8'h44; // +
+		'h7B: ps2_col_row <= 8'h43; // -
+		'h7C: ps2_col_row <= 8'h42; // *
+		'h4A: ps2_col_row <= 8'h41; // /
+		'h55: ps2_col_row <= 8'h45; // =
 
-		'hX29: ps2_col_row <= 8'h51; // space (CH)
+		'h29: ps2_col_row <= 8'h51; // space (CH)
 
-		'hX5A: ps2_col_row <= 8'd70; // enter (C)
-		'hX66: ps2_col_row <= 8'd75; // backspace (CE)
+		'h5A: ps2_col_row <= 8'd70; // enter (C)
+		'h66: ps2_col_row <= 8'd75; // backspace (CE)
 		default: ps2_col_row <= 8'h00;
 	endcase
 

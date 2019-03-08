@@ -104,7 +104,6 @@ module emu
 	output [63:0] DDRAM_DIN,
 	output  [7:0] DDRAM_BE,
 	output        DDRAM_WE,
-	output [1:0]  BUFFERMODE,
 
 	//SDRAM interface with lower latency
 	output        SDRAM_CLK,
@@ -124,9 +123,20 @@ module emu
 	input         UART_RXD,
 	output        UART_TXD,
 	output        UART_DTR,
-	input         UART_DSR
+	input         UART_DSR,
+
+	// Open-drain User port.
+	// 0 - D+/RX
+	// 1 - D-/TX
+	// 2..5 - USR1..USR4
+	// Set USER_OUT to 1 to read from USER_IN.
+	input   [5:0] USER_IN,
+	output  [5:0] USER_OUT,
+
+	input         OSD_STATUS
 );
 
+assign USER_OUT = '1;
 assign {UART_RTS, UART_TXD, UART_DTR} = 0;
 
 assign AUDIO_S   = 0;
@@ -155,7 +165,6 @@ parameter CONF_STR = {
 	"-;",
 	"O8,Aspect ratio,4:3,16:9;",
 	"O9B,Scandoubler Fx,None,HQ2x,CRT 25%,CRT 50%,CRT 75%;",
-	"OGH,Buffering,Triple,Single,Low Latency;",
 	"-;",
 	"O7,Swap Joysticks,No,Yes;",
 	"-;",
@@ -204,8 +213,6 @@ hps_io #(.STRLEN($size(CONF_STR)>>3)) hps_io
 
 	.ps2_key(ps2_key)
 );
-
-assign BUFFERMODE = (status[17:16] == 2'b00) ? 2'b01 : (status[17:16] == 2'b01) ? 2'b00 : 2'b10;
 
 wire       joy_swap = status[7];
 

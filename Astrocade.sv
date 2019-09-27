@@ -238,14 +238,13 @@ wire [15:0] joyba = joy_swap ? joystick_a0 : joystick_a1;
 // give us 14.2857MHz (7.1428)
 
 wire clk_sys;
-wire clk_vid;
 
 pll pll
 (
 	.refclk(CLK_50M),
 	.rst(0),
 	.outclk_0(clk_sys),
-	.outclk_1(clk_vid)
+	.outclk_1(CLK_VIDEO)
 );
 
 reg [1:0] clk_cpu_ct;
@@ -275,8 +274,8 @@ BALLY bally
 	.O_CE_PIX       (),
 	.O_HBLANK_V     (),
 	.O_VBLANK_V     (),
-	.O_HSYNC        (HSync), //    : out   std_logic;
-	.O_VSYNC        (VSync), //    : out   std_logic;
+	.O_HSYNC        (hs), //    : out   std_logic;
+	.O_VSYNC        (vs), //    : out   std_logic;
 	.O_COMP_SYNC_L  (), //    : out   std_logic;
 	.O_FPSYNC       (), //    : out   std_logic;
 
@@ -331,13 +330,13 @@ assign AUDIO_R = audio_out;
 
 
 wire [3:0] R, G, B;
+wire hs,vs;
 
-wire HSync;
-wire VSync;
+reg  HSync;
+reg  VSync;
 wire VBlank = ((vsync_ct < 25) || (vsync_ct > 254));
 wire HBlank = ((hsync_ct >= 214) || (hsync_ct < 34));
 
-assign CLK_VIDEO = clk_vid;
 assign VGA_SL = sl[1:0];
 assign VGA_F1 = 0;
 
@@ -346,38 +345,34 @@ assign VGA_F1 = 0;
 wire [2:0] scale = status[11:9];
 wire [2:0] sl = scale ? scale - 1'd1 : 3'd0;
 
-(* keep = 1 *) reg [15:0] vsync_ct;
-(* keep = 1 *) reg [15:0] hsync_ct;
-
-reg old_vsync, old_hsync;
+reg [15:0] vsync_ct;
+reg [15:0] hsync_ct;
 
 reg ce_pix;
-always @(posedge clk_vid) begin
-	reg [2:0] pix;
+always @(posedge CLK_VIDEO) begin
+	reg [3:0] pix;
 	
 	pix <= pix + 1'd1;
-	old_hsync <= HSync;
-	old_vsync <= VSync;
 
 	ce_pix <= 0;
-	if (~old_vsync & VSync) begin
-		vsync_ct <= 16'd0;
-	end
-	else if (~old_hsync & HSync) begin
-		vsync_ct <= vsync_ct + 16'd1;
-		hsync_ct <= 16'd0;
-		pix <= 0;
-	end
-	else if(&pix) begin
-		hsync_ct <= hsync_ct + 16'd1;
+	if(&pix) begin
+		hsync_ct <= hsync_ct + 1'd1;
 		ce_pix <= 1;
+
+		HSync <= hs;
+		if (~HSync & hs) begin
+			vsync_ct <= vsync_ct + 1'd1;
+			hsync_ct <= 0;
+			VSync <= vs;
+			if (~VSync & vs) vsync_ct <= 0;
+		end
 	end
 end
+
 
 video_mixer #(455, 1) video_mixer
 (
 	.*,
-	.ce_pix(ce_pix),
 	.clk_sys(CLK_VIDEO),
 	.ce_pix_out(CE_PIXEL),
 

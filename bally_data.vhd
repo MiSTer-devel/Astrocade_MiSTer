@@ -129,7 +129,7 @@ architecture RTL of BALLY_DATA is
   constant H_DRIVE_R            : std_logic_vector(8 downto 0) := conv_std_logic_vector( 63+8,9);
   constant H_VDRIVE_R           : std_logic_vector(8 downto 0) := conv_std_logic_vector( 71+8,9);
 
-  constant H_LEN                : std_logic_vector(8 downto 0) := conv_std_logic_vector(454,9); -- line length (455 clocks)
+  constant H_LEN                : std_logic_vector(8 downto 0) := conv_std_logic_vector(453,9); -- line length (455 clocks)
   constant V_LEN                : std_logic_vector(10 downto 0) := conv_std_logic_vector(525,11); -- frame length
 
   component BALLY_COL_PAL
@@ -381,7 +381,7 @@ begin
       if (h_count = H_LEN) then
         h_count <= (others => '0');
         if (v_count = V_LEN) then
-          v_count <= "00000000001";
+          v_count <= "00000000000";
         else
           v_count <= v_count + "1";
         end if;

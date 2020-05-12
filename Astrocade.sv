@@ -179,23 +179,25 @@ parameter CONF_STR = {
 	"O7,Swap Joysticks,No,Yes;",
 	"-;",
 	"R0,Reset;",
-	"J,Trigger,0,1,2,3,4,5,6,7,8,9,Char;",
+	"J1,Fire,0,1,2,3,4,5,6,7,8,9,CH,C,CE,Plus,Minus,Mul,Div,=,.,MR,MS,Prev,Next,%;",
 	"V,v",`BUILD_DATE
 };
 
 wire  [1:0] buttons;
 wire [31:0] status;
 wire        forced_scandoubler;
+wire [21:0] gamma_bus;
 
 wire        ioctl_download;
 wire [24:0] ioctl_addr;
-wire [15:0] ioctl_dout;
+wire  [7:0] ioctl_dout;
 wire        ioctl_wait;
 wire        ioctl_wr;
 
-wire [15:0] joystick_0,joystick_1,joystick_a0,joystick_a1;
+wire [31:0] joystick_0,joystick_1,joyc,joyd;
+wire  [7:0] pd_0,pd_1,pdc,pdd;
 wire [24:0] ps2_mouse;
-wire [7:0] ioctl_index;
+wire  [7:0] ioctl_index;
 
 hps_io #(.STRLEN($size(CONF_STR)>>3)) hps_io
 (
@@ -212,25 +214,30 @@ hps_io #(.STRLEN($size(CONF_STR)>>3)) hps_io
 	.ioctl_index(ioctl_index),
 
 	.forced_scandoubler(forced_scandoubler),
+	.gamma_bus(gamma_bus),
 
 	.buttons(buttons),
 	.status(status),
 
 	.joystick_0(joystick_0),
 	.joystick_1(joystick_1),
-	.joystick_analog_0(joystick_a0),
-	.joystick_analog_1(joystick_a1),
+	.joystick_2(joyc),
+	.joystick_3(joyd),
+
+	.paddle_0(pd_0),
+	.paddle_1(pd_1),
+	.paddle_2(pdc),
+	.paddle_3(pdd),
 
 	.ps2_key(ps2_key)
 );
 
 wire       joy_swap = status[7];
 
-wire [15:0] joya = joy_swap ? joystick_1 : joystick_0;
-wire [15:0] joyb = joy_swap ? joystick_0 : joystick_1;
-wire [15:0] joyaa = joy_swap ? joystick_a1 : joystick_a0;
-wire [15:0] joyba = joy_swap ? joystick_a0 : joystick_a1;
-
+wire [31:0] joya = joy_swap ? joystick_1 : joystick_0;
+wire [31:0] joyb = joy_swap ? joystick_0 : joystick_1;
+wire  [7:0] pda  = joy_swap ? pd_1 : pd_0;
+wire  [7:0] pdb  = joy_swap ? pd_0 : pd_1;
 
 ///////////////////////  CLOCK/RESET  ///////////////////////////////////
 
@@ -370,10 +377,10 @@ always @(posedge CLK_VIDEO) begin
 end
 
 
-video_mixer #(455, 1) video_mixer
+video_mixer #(455, 1, 1) video_mixer
 (
 	.*,
-	.clk_sys(CLK_VIDEO),
+	.clk_vid(CLK_VIDEO),
 	.ce_pix_out(CE_PIXEL),
 
 	.scandoubler(scale || forced_scandoubler),
@@ -386,18 +393,17 @@ video_mixer #(455, 1) video_mixer
 ////////////////////////////  INPUT  ////////////////////////////////////
 
 wire [10:0] ps2_key;
-wire [7:0] col_select;
-wire [7:0] row_data;
-wire [3:0] pot_select;
-wire [7:0] pot_data;
+wire  [7:0] col_select;
+wire  [7:0] row_data;
+wire  [3:0] pot_select;
 
-wire [7:0] joya_paddle = 8'd128 + $signed(~joyaa[15:8]);
-wire [7:0] joyb_paddle = 8'd128 + $signed(~joyba[15:8]);
+wire [7:0] pot_data = 
+   (pot_select[0] ? pda : 8'hFF) & 
+   (pot_select[1] ? pdb : 8'hFF) & 
+   (pot_select[2] ? pdc : 8'hFF) & 
+   (pot_select[3] ? pdd : 8'hFF);
 
-bally_input bally_input
-(
-	.*
-);
+bally_input bally_input (.*);
 
 ////////////////////////////  MEMORY  ///////////////////////////////////
 

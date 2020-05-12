@@ -784,7 +784,7 @@ O_HBLANK <= sg_hblank;
   begin
     wait until rising_edge(CLK);
     if (ENA = '1') then
-      sg_neg_sync <= not sg_sync;
+      --sg_neg_sync <= not sg_sync;
       O_HSYNC <= hsync;
       O_VSYNC <= vsync_t1;
 

@@ -108,12 +108,10 @@ architecture RTL of BALLY is
   signal cpu_rd_l         : std_logic;
   signal cpu_wr_l         : std_logic;
   signal cpu_rfsh_l       : std_logic;
-  signal cpu_halt_l       : std_logic;
   signal cpu_wait_l       : std_logic;
   signal cpu_int_l        : std_logic;
   signal cpu_nmi_l        : std_logic;
   signal cpu_busrq_l      : std_logic;
-  signal cpu_busak_l      : std_logic;
   signal cpu_addr         : std_logic_vector(15 downto 0);
   signal cpu_data_out     : std_logic_vector(7 downto 0);
   signal cpu_data_in      : std_logic_vector(7 downto 0);
@@ -188,11 +186,11 @@ begin
   cpu_nmi_l   <= '1';
 
   cpu_ena_gated <= ENA and cpu_ena;
-  u_cpu : entity work.T80sed
+  u_cpu : entity work.T80s
           port map (
               RESET_n => I_RESET_L,
-              CLK_n   => CLK,
-              CLKEN   => cpu_ena_gated,
+              CLK     => CLK,
+              CEN     => cpu_ena_gated,
               WAIT_n  => cpu_wait_l,
               INT_n   => cpu_int_l,
               NMI_n   => cpu_nmi_l,
@@ -203,8 +201,6 @@ begin
               RD_n    => cpu_rd_l,
               WR_n    => cpu_wr_l,
               RFSH_n  => cpu_rfsh_l,
-              HALT_n  => cpu_halt_l,
-              BUSAK_n => cpu_busak_l,
               A       => cpu_addr,
               DI      => cpu_data_in,
               DO      => cpu_data_out
@@ -333,8 +329,8 @@ begin
       O_MD              => md_bus_out,
       O_MD_OE_L         => open,
       -- custom
-      O_MC1             => mc1,
-      O_MC0             => mc0,
+      --O_MC1             => mc1,
+      --O_MC0             => mc0,
 
       O_HORIZ_DR        => horiz_dr,
       O_VERT_DR         => vert_dr,

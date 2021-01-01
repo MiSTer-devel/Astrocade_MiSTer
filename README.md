@@ -1,4 +1,4 @@
-# Bally Astrocade for [MiSTer](https://github.com/MiSTer-devel/Main_MiSTer/wiki)
+# [Bally Astrocade](https://en.wikipedia.org/wiki/Bally_Astrocade) for MiSTer Platform
 
 ### This is an FPGA implementation of the Bally Astrocade based on a project by MikeJ.
 

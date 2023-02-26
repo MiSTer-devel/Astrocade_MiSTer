@@ -49,7 +49,7 @@ module emu
 	input         RESET,
 
 	//Must be passed to hps_io module
-	inout  [45:0] HPS_BUS,
+	inout  [48:0] HPS_BUS,
 
 	//Base video clock. Usually equals to CLK_SYS.
 	output        CLK_VIDEO,
@@ -72,12 +72,14 @@ module emu
 	output        VGA_F1,
 	output [1:0]  VGA_SL,
 	output        VGA_SCALER, // Force VGA scaler
+	output        VGA_DISABLE, // analog out is off
 
 	input  [11:0] HDMI_WIDTH,
 	input  [11:0] HDMI_HEIGHT,
+	output        HDMI_FREEZE,
 
-`ifdef USE_FB
-	// Use framebuffer in DDRAM (USE_FB=1 in qsf)
+`ifdef MISTER_FB
+	// Use framebuffer in DDRAM
 	// FB_FORMAT:
 	//    [2:0] : 011=8bpp(palette) 100=16bpp 101=24bpp 110=32bpp
 	//    [3]   : 0=16bits 565 1=16bits 1555
@@ -94,6 +96,7 @@ module emu
 	input         FB_LL,
 	output        FB_FORCE_BLANK,
 
+`ifdef MISTER_FB_PALETTE
 	// Palette control for 8bit modes.
 	// Ignored for other video modes.
 	output        FB_PAL_CLK,
@@ -101,6 +104,7 @@ module emu
 	output [23:0] FB_PAL_DOUT,
 	input  [23:0] FB_PAL_DIN,
 	output        FB_PAL_WR,
+`endif
 `endif
 
 	output        LED_USER,  // 1 - ON, 0 - OFF.
@@ -132,7 +136,6 @@ module emu
 	output        SD_CS,
 	input         SD_CD,
 
-`ifdef USE_DDRAM
 	//High latency DDR3 RAM interface
 	//Use for non-critical time purposes
 	output        DDRAM_CLK,
@@ -145,9 +148,7 @@ module emu
 	output [63:0] DDRAM_DIN,
 	output  [7:0] DDRAM_BE,
 	output        DDRAM_WE,
-`endif
 
-`ifdef USE_SDRAM
 	//SDRAM interface with lower latency
 	output        SDRAM_CLK,
 	output        SDRAM_CKE,
@@ -160,10 +161,10 @@ module emu
 	output        SDRAM_nCAS,
 	output        SDRAM_nRAS,
 	output        SDRAM_nWE,
-`endif
 
-`ifdef DUAL_SDRAM
+`ifdef MISTER_DUAL_SDRAM
 	//Secondary SDRAM
+	//Set all output SDRAM_* signals to Z ASAP if SDRAM2_EN is 0
 	input         SDRAM2_EN,
 	output        SDRAM2_CLK,
 	output [12:0] SDRAM2_A,
@@ -209,6 +210,8 @@ assign LED_DISK  = 0;
 assign LED_POWER = 0;
 assign BUTTONS   = 0;
 assign VGA_SCALER= 0;
+assign VGA_DISABLE = 0;
+assign HDMI_FREEZE = 0;
 
 reg en216p;
 always @(posedge CLK_VIDEO) begin
@@ -261,7 +264,6 @@ wire [21:0] gamma_bus;
 wire        ioctl_download;
 wire [24:0] ioctl_addr;
 wire  [7:0] ioctl_dout;
-wire        ioctl_wait;
 wire        ioctl_wr;
 
 wire [31:0] joystick_0,joystick_1,joyc,joyd;
@@ -269,18 +271,15 @@ wire  [7:0] pd_0,pd_1,pdc,pdd;
 wire [24:0] ps2_mouse;
 wire  [7:0] ioctl_index;
 
-hps_io #(.STRLEN($size(CONF_STR)>>3)) hps_io
+hps_io #(.CONF_STR(CONF_STR)) hps_io
 (
 	.clk_sys(clk_sys),
 	.HPS_BUS(HPS_BUS),
-
-	.conf_str(CONF_STR),
 
 	.ioctl_download(ioctl_download),
 	.ioctl_wr(ioctl_wr),
 	.ioctl_addr(ioctl_addr),
 	.ioctl_dout(ioctl_dout),
-	.ioctl_wait(ioctl_wait),
 	.ioctl_index(ioctl_index),
 
 	.forced_scandoubler(forced_scandoubler),
@@ -451,6 +450,7 @@ end
 video_mixer #(455, 1, 1) video_mixer
 (
 	.*,
+	.freeze_sync(),
 	.scandoubler(scale || forced_scandoubler),
 	.hq2x(scale==1),
 	.VGA_DE(vga_de)

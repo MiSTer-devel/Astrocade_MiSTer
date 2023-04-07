@@ -249,6 +249,7 @@ parameter CONF_STR = {
 	"d0OG,Vertical Crop,No,Yes;",
 	"OEF,Scale,Normal,V-Integer,Narrower HV-Integer,Wider HV-Integer;",
 	"-;",
+	"OHJ,Paddle,Native Paddle,Left Stick X,Left Stick Y,Right Stick X,Right Stick Y;",
 	"O7,Swap Joysticks,No,Yes;",
 	"-;",
 	"R0,Reset;",
@@ -267,7 +268,9 @@ wire  [7:0] ioctl_dout;
 wire        ioctl_wr;
 
 wire [31:0] joystick_0,joystick_1,joyc,joyd;
-wire  [7:0] pd_0,pd_1,pdc,pdd;
+wire [15:0] joystick_la0,joystick_la1,joystick_la2,joystick_la3;
+wire [15:0] joystick_ra0,joystick_ra1,joystick_ra2,joystick_ra3;
+wire  [7:0] pd_0,pd_1,pd_2,pd_3;
 wire [24:0] ps2_mouse;
 wire  [7:0] ioctl_index;
 
@@ -293,11 +296,21 @@ hps_io #(.CONF_STR(CONF_STR)) hps_io
 	.joystick_1(joystick_1),
 	.joystick_2(joyc),
 	.joystick_3(joyd),
+	
+	.joystick_l_analog_0(joystick_la0),
+	.joystick_l_analog_1(joystick_la1),
+	.joystick_l_analog_2(joystick_la2),
+	.joystick_l_analog_3(joystick_la3),
+	
+	.joystick_r_analog_0(joystick_ra0),
+	.joystick_r_analog_1(joystick_ra1),
+	.joystick_r_analog_2(joystick_ra2),
+	.joystick_r_analog_3(joystick_ra3),
 
 	.paddle_0(pd_0),
 	.paddle_1(pd_1),
-	.paddle_2(pdc),
-	.paddle_3(pdd),
+	.paddle_2(pd_2),
+	.paddle_3(pd_3),
 
 	.ps2_key(ps2_key)
 );
@@ -306,8 +319,52 @@ wire       joy_swap = status[7];
 
 wire [31:0] joya = joy_swap ? joystick_1 : joystick_0;
 wire [31:0] joyb = joy_swap ? joystick_0 : joystick_1;
-wire  [7:0] pda  = joy_swap ? pd_1 : pd_0;
-wire  [7:0] pdb  = joy_swap ? pd_0 : pd_1;
+
+wire  [7:0] pd0,pd1,pd2,pd3;
+
+always_comb begin
+	case(status[19:17])
+		1: begin
+			pd0 = {joystick_la0[7], ~joystick_la0[6:0]};
+			pd1 = {joystick_la1[7], ~joystick_la1[6:0]};
+			pd2 = {joystick_la2[7], ~joystick_la2[6:0]};
+			pd3 = {joystick_la3[7], ~joystick_la3[6:0]};
+		end
+	
+		2: begin
+			pd0 = {joystick_la0[15], ~joystick_la0[14:8]};
+			pd1 = {joystick_la1[15], ~joystick_la1[14:8]};
+			pd2 = {joystick_la2[15], ~joystick_la2[14:8]};
+			pd3 = {joystick_la3[15], ~joystick_la3[14:8]};
+		end
+
+		3: begin
+			pd0 = {joystick_ra0[7], ~joystick_ra0[6:0]};
+			pd1 = {joystick_ra1[7], ~joystick_ra1[6:0]};
+			pd2 = {joystick_ra2[7], ~joystick_ra2[6:0]};
+			pd3 = {joystick_ra3[7], ~joystick_ra3[6:0]};
+		end
+	
+		4: begin
+			pd0 = {joystick_ra0[15], ~joystick_ra0[14:8]};
+			pd1 = {joystick_ra1[15], ~joystick_ra1[14:8]};
+			pd2 = {joystick_ra2[15], ~joystick_ra2[14:8]};
+			pd3 = {joystick_ra3[15], ~joystick_ra3[14:8]};
+		end
+
+		default: begin
+			pd0 = pd_0;
+			pd1 = pd_1;
+			pd2 = pd_2;
+			pd3 = pd_3;
+		end
+	endcase
+end
+
+wire  [7:0] pda  = joy_swap ? pd1 : pd0;
+wire  [7:0] pdb  = joy_swap ? pd0 : pd1;
+wire  [7:0] pdc  = pd2;
+wire  [7:0] pdd  = pd3;
 
 ///////////////////////  CLOCK/RESET  ///////////////////////////////////
 
